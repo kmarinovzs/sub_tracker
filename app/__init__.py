@@ -1,7 +1,7 @@
 from flask import Flask
 
 from .models import db
-from .routes import main_bp
+from .routes import app_bp
 from config import Config
 
 
@@ -13,7 +13,7 @@ def create_app():
 
     db.init_app(app)
 
-    app.register_blueprint(main_bp)
+    app.register_blueprint(app_bp)
 
     return app
 
