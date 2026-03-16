@@ -1,8 +1,0 @@
-{
-    "gitdoc.enabled": true,
-    "files.associations": {
-        "cmath": "c",
-        "stdio.h": "c"
-    },
-    "files.autoSave": "afterDelay"
-}
