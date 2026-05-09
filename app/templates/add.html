@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Add 
+{% endblock %}
+
+{% block main %}
+    <form action="/add" method="post" class="d-flex gap-2">
+        <input type="text" name="subscription" placeholder="Subscription name" autofocus autocomplete="off" class="form-control w-50">
+
+        <input type="number" name="amount" placeholder="Price" autocomplete="off" class="form-control w-auto">
+
+        <div class="me-3">
+            Billing cycle:
+            <input type="radio" name="billing" class="form-check-input" value="monthly">
+            <label for="Monthly">Monthly</label>
+
+            <input type="radio" name="billing" class="form-check-input" value="yearly">
+            <label for="Yearly">Yearly</label>
+        </div>
+        
+        <button type=""submit" class="btn btn-primary">Add</button>
+
+    </form>
+
+{% endblock %}

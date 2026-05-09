@@ -69,3 +69,15 @@ def logout():
     session.clear()
     return redirect(url_for("main.index"))
 
+
+@app_bp.route("/add", methods=["GET" ,"POST"])
+def add():
+    if request.method == "POST":
+        subscription = request.form.get("subscription")
+        billing = request.form.get("billing")
+        next_due_date = request.form.get("next_due_date")
+        amount = request.form.get("amount")
+        user = session["user_id"]
+
+    return render_template("add.html")
+
