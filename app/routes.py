@@ -156,5 +156,20 @@ def chart_data():
 
 @app_bp.route("/demo")
 def demo():
+    username = "DemoUser"
+    password = generate_password_hash("DemoPassword")
 
-    return 
+    user = User(username=username, hash=password)
+    
+    try:
+        db.session.add(user)
+        db.session.commit()
+        session["user_id"] = user.id
+        session["username"] = user.username
+        session["logged_in"] = True
+        return redirect(url_for("main.dashboard"))
+    except Exception as e:
+        flash("Demo Version is not working")
+        print(f"ERROR: {e}")
+
+        return redirect(url_for("main.index"))
