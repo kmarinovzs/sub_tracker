@@ -148,17 +148,10 @@ def chart_data():
 
     data = Subscription.query.filter_by(user_id=session["user_id"]).all()
 
-    ls = []
-    for d in data:
-        if d.billing_cycle == "monthly":
-            ls.append(d.amount)
-        else:
-            ls.append(round(d.amount / 12, 2))
-
     return jsonify({
         "labels": [d.name for d in data],
-        "values": ls
-    }) 
+        "values": [d.amount if d.billing_cycle == "monthly" else round(d.amount / 12, 2) for d in data]
+    })
 
 
 @app_bp.route("/demo")

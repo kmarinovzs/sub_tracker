@@ -12,3 +12,7 @@ body {
 main {
   flex: 1;
 }
+
+.btn-pushed {
+    margin-bottom: 15px;
+}
