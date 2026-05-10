@@ -1,60 +1,13 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Index
-{% endblock %}
+    Homepage
+{% endblock %} 
 
 {% block main %}
-    <button onclick="window.location.href='{{ url_for('main.add') }}'" id="add" class="btn btn-primary">Add Subscription</button>
-    <hr>
-    <div class="row">
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="card bg-dark text-white border-secondary h-100">
-                <div class="class-body">
-                    <h5 class="card-title">Total Monthly Spend</h5>
-                    <p class="card-text">{{total_monthly}} USD</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="card bg-dark text-white border-secondary h-100">
-                <div class="class-body">
-                    <h5 class="card-title">Total Yearly Spend</h5>
-                    <p class="card-text">{{total_yearly}} USD</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="card bg-dark text-white border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Active subscriptions</h5>
-                    <p class="card-text">{{ active_subscriptions }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="card bg-dark text-white border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Due this week</h5>
-                    <p class="card-text">{{ due_this_week }} USD</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <h5>Welcome to the Homepage!</h5>
+    {% if not session.get("logged_in") %}
+    <p style="margin-top: 150px;"> Log in or <a href="/demo" class="btn btn-primary" >TRY AS A GUEST</a></p>
+    {% endif %}
 
-    <div id="subscriptions" class="d-flex flex-column gap-3 mt-4">
-        {% for subscription in subscriptions %}
-            <div class="card">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">{{ subscription.name }}</h5>
-                        <p class="card-text">{{ subscription.amount }} USD / {{ subscription.billing }}</p>
-                    </div>
-                    <form action="/delete/{{ subscription.id }}" method="post">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-{% endblock %} 
+{% endblock %}

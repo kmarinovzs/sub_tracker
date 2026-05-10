@@ -15,6 +15,9 @@ def create_app():
 
     app.register_blueprint(app_bp)
 
+    with app.app_context():
+        db.create_all()
+        
     return app
 
 
