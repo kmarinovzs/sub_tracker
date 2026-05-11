@@ -7,21 +7,23 @@ Index
 {% block main %}
 <button id="addButton" class="btn btn-primary">Add Subscription</button>
 
-<div id="formContainer" class="d-none">
-    <form action="/add" method="post" class="d-flex gap-2">
+<div id="formContainer" class="d-none w-100">
+    <form action="/add" method="post" class="d-flex gap-2 w-100">
         <input type="text" name="subscription" placeholder="Subscription name" autofocus autocomplete="off"
-            class="form-control w-50">
+            class="form-control flex-grow-1">
 
         <input type="number" name="amount" min="0" step="0.01" placeholder="Price" autocomplete="off"
             class="form-control w-auto">
 
-        <div class="me-3">
-            Billing cycle:
-            <input type="radio" name="billing" class="form-check-input" value="monthly">
-            <label for="Monthly">Monthly</label>
-
-            <input type="radio" name="billing" class="form-check-input" value="yearly">
-            <label for="Yearly">Yearly</label>
+        <div class="d-flex flex-column justify-content-center">
+            <div class="form-check">
+                <input type="radio" name="billing" class="form-check-input" value="monthly">
+                <label for="Monthly">Monthly</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" name="billing" class="form-check-input" value="yearly">
+                <label for="Yearly">Yearly</label>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Add</button>
@@ -31,23 +33,23 @@ Index
 <hr>
 <div class="row">
     <div class="col-12 col-md-6 col-lg-3">
-        <div class="card bg-dark text-white border-secondary h-100">
+        <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
-                <h5 class="card-title">Average Monthly Spend</h5>
+                <h5 class="card-title">Average Monthly Spending</h5>
                 <p class="card-text">{{average_monthly | round(2)}} USD</p>
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6 col-lg-3">
-        <div class="card bg-dark text-white border-secondary h-100">
+        <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
-                <h5 class="card-title">Total Yearly Spend</h5>
+                <h5 class="card-title">Total Yearly Spending</h5>
                 <p class="card-text">{{total_yearly | round(2)}} USD</p>
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6 col-lg-3">
-        <div class="card bg-dark text-white border-secondary h-100">
+        <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
                 <h5 class="card-title">Active subscriptions</h5>
                 <p class="card-text">{{ active_subscriptions }}</p>
@@ -55,17 +57,38 @@ Index
         </div>
     </div>
     <div class="col-12 col-md-6 col-lg-3">
-        <div class="card bg-dark text-white border-secondary h-100">
+        <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
-                <h5 class="card-title">Due this week</h5>
-                <p class="card-text">{{ due_this_week }} USD</p>
+                <h5 class="card-title">Due next month</h5>
+                <p class="card-text">{{ due_next_month | round(2) }} USD</p>
             </div>
         </div>
     </div>
 </div>
-
-<div style="width: 400px; height: 400px; margin-top: 100px  ;" id="chart">
-    <canvas id="myChart"></canvas>
+<div class="row">
+    <div class="col">
+        <div style="width: 400px; height: 400px; margin-top: 100px  ;" id="chart">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+    <div class="col d-flex flex-column justify-content-center gap-4">
+        <div class="row">
+            <div class="card bg-danger text-grey border-secondary w-75 mx-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Highest expense</h5>
+                    <p class="card-text">{{ highest_expense }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card bg-success text-grey border-secondary w-75 mx-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Lowest expense</h5>
+                    <p class="card-text">{{ lowest_expense }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="subscriptions" class="d-flex flex-column gap-3 mt-4">
@@ -73,18 +96,45 @@ Index
     <div class="card">
         <div class="card-body d-flex justify-content-between">
             <div>
-                <h5 class="card-title">{{ subscription.name }}</h5>
-                <p class="card-text" style="text-align: left">{{ subscription.amount }} USD {{ subscription.billing }}
+                <h5 class="card-title" style="text-align: left">{{ subscription.name }}</h5>
+                <p class="card-text" style="text-align: left">{{ "{:,.2f}".format(subscription.amount) }} USD / {{
+                    "month" if subscription.billing_cycle == "monthly" else "year"}}
                 </p>
             </div>
             <div class="ms-auto text-end me-3">
                 <p class="card-text">Next due Date: {{ subscription.next_due_date.strftime("%Y-%m-%d") }}</p>
             </div>
-            <form action="/delete/{{subscription.id}}" method="post">
-                <button type="submit" class="btn btn-danger"">Delete</button>
+
+            <form>
+                <button class="btn btn-warning edit-btn me-3" data-id="{{subscription.id}}">Edit</button>
             </form>
-            
+
+            <form action="/delete/{{subscription.id}}" method="post">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
         </div>
+    </div>
+    <div id="editContainer{{subscription.id}}" class="d-none w-100">
+        <form action="/edit/{{subscription.id}}" method="post" class="d-flex gap-2 w-100">
+            <input type="text" name="subscription" placeholder="Subscription name" autofocus autocomplete="off"
+                class="form-control flex-grow-1">
+
+            <input type="number" name="amount" min="0" step="0.01" placeholder="Price" autocomplete="off"
+                class="form-control w-auto">
+
+            <div class="d-flex flex-column justify-content-center">
+                <div class="form-check">
+                    <input type="radio" name="billing" class="form-check-input" value="monthly">
+                    <label for="Monthly">Monthly</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" name="billing" class="form-check-input" value="yearly">
+                    <label for="Yearly">Yearly</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
     </div>
     {% endfor %}
 </div>

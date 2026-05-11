@@ -24,3 +24,20 @@ document.getElementById('addButton').addEventListener('click', function() {
 
     this.textContent = form.classList.contains('d-none') ? 'Add Subscription' : 'Cancel'
 });
+
+document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const subId = this.getAttribute('data-id');
+
+        const edit = document.getElementById(`editContainer${subId}`);
+
+        if (edit) {
+            edit.classList.toggle('d-none');
+        } else {
+            console.error(`Could not find element: editContainer${subId}`);
+        }
+
+    });
+});

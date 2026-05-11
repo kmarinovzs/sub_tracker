@@ -7,7 +7,19 @@ from .models import User, Subscription, db
 from sqlalchemy import func
 
 app_bp = Blueprint('main', __name__, template_folder="templates")
-        
+
+
+def check_date(next_due_date):
+    today = datetime.now()
+
+    if today.month == 12:
+        month = 1
+    else:
+        month = today.month + 1
+    
+    return next_due_date.month == month
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -53,7 +65,6 @@ def register():
 
 @app_bp.route("/login", methods = ["GET", "POST"])
 def login():
-
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -71,7 +82,7 @@ def login():
         else:
             flash("Username or password are not correct")
             return redirect(url_for("main.login"))
-    print(session)
+    
     return render_template("login.html")
             
 
@@ -92,7 +103,7 @@ def add():
         billing = request.form.get("billing")
         amount = request.form.get("amount")
 
-        if not name or not billing or not amount:
+        if not name or not billing or not amount:   
             flash("Fill all the fields correctly")
             return redirect(url_for("main.add"))
         user = session["user_id"]
@@ -110,7 +121,8 @@ def add():
             print(f"ERROR: {e}")
             return redirect(url_for("main.add"))
 
-    return render_template("add.html")
+    flash("Fill all the fields correctly and try again")
+    return redirect(url_for("main.dashboard"))
 
 
 @app_bp.route("/delete/<int:subscription_id>", methods=["POST"])
@@ -129,9 +141,35 @@ def delete(subscription_id):
         return redirect(url_for("main.dashboard"))
 
 
+@app_bp.route("/edit/<int:subscription_id>", methods=["POST"])
+@login_required
+def edit(subscription_id):
+    sub = Subscription.query.get_or_404(subscription_id)
+
+    name = request.form.get("subscription")
+    amount = request.form.get("amount")
+    billing = request.form.get("billing")
+
+    if not name or not amount or not billing:
+        flash("Enter all data correctly")
+        return redirect(url_for("main.dashboard"))
+    
+    sub.name = name 
+    sub.amount = amount
+    sub.billing_cycle = billing
+    try:
+        db.session.commit()
+        return redirect(url_for("main.dashboard"))
+    except Exception as e:
+        print(f"ERROR: {e}")
+        flash("Edit was not possible, try again later")
+        return redirect(url_for("main.dashboard"))
+
+
 @app_bp.route("/dashboard")
 @login_required
 def dashboard():
+    update_dates()
 
     subscriptions = Subscription.query.filter_by(user_id=session["user_id"]).all()
     active_subs = Subscription.query.filter_by(user_id=session["user_id"]).count()
@@ -139,8 +177,43 @@ def dashboard():
     sum_yearly = sum(sub.amount for sub in subscriptions if sub.billing_cycle == "yearly")
     sum_monthly += sum_yearly / 12
     total_yearly = 12 * sum_monthly
+    due_next_month = 0
+
+    for sub in subscriptions:
+        if check_date(sub.next_due_date):
+            due_next_month += sub.amount
+        
+    cheapest_sub_m = Subscription.query.filter_by(user_id=session["user_id"]).filter_by(billing_cycle="monthly").order_by(Subscription.amount.asc()).first()
+    cheapest_sub_y = Subscription.query.filter_by(user_id=session["user_id"]).filter_by(billing_cycle="yearly").order_by(Subscription.amount.asc()).first()
     
-    return render_template("dashboard.html", subscriptions=subscriptions, active_subscriptions=active_subs, average_monthly=sum_monthly, total_yearly=total_yearly)    
+    if cheapest_sub_m and cheapest_sub_y:
+        if cheapest_sub_m.amount < cheapest_sub_y.amount / 12:
+            lowest_expense = cheapest_sub_m.name
+        else:
+            lowest_expense = cheapest_sub_y.name
+    elif cheapest_sub_m and not cheapest_sub_y:
+        lowest_expense = cheapest_sub_m.name
+    elif cheapest_sub_y and not cheapest_sub_m:
+        lowest_expense = cheapest_sub_y.name
+    else:
+        lowest_expense = ""
+
+    highest_sub_m = Subscription.query.filter_by(user_id=session["user_id"]).filter_by(billing_cycle="monthly").order_by(Subscription.amount.desc()).first()
+    highest_sub_y = Subscription.query.filter_by(user_id=session["user_id"]).filter_by(billing_cycle="yearly").order_by(Subscription.amount.desc()).first()
+
+    if highest_sub_m and highest_sub_y:
+        if highest_sub_m.amount > highest_sub_y.amount / 12:
+            highest_expense = highest_sub_m.name
+        else:
+            highest_expense = highest_sub_y.name
+    elif highest_sub_m and not highest_sub_y:
+        highest_expense = highest_sub_m.name
+    elif highest_sub_y and not highest_sub_m:
+        highest_expense = highest_sub_y.name
+    else:
+        highest_expense = ""
+    
+    return render_template("dashboard.html", subscriptions=subscriptions, active_subscriptions=active_subs, average_monthly=sum_monthly, total_yearly=total_yearly, due_next_month=due_next_month, lowest_expense=lowest_expense, highest_expense=highest_expense)    
 
 
 @app_bp.route("/chart-data")
@@ -156,20 +229,60 @@ def chart_data():
 
 @app_bp.route("/demo")
 def demo():
-    username = "DemoUser"
-    password = generate_password_hash("DemoPassword")
 
-    user = User(username=username, hash=password)
+    user = User.query.filter_by(username="DemoUser").first()
+
+    if not user:
+        try:
+            user = User(username="DemoUser", hash=generate_password_hash("DemoPassword"))
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"ERROR: {e}")
+            flash("Demo Version is not working")
+
+    seed_demo()
+
+    session["user_id"] = user.id
+    session["username"] = user.username
+    session["logged_in"] = True
+    return redirect(url_for("main.dashboard"))
+
+
+def seed_demo():
+    user = User.query.filter_by(username="DemoUser").first()
+
+    Subscription.query.filter_by(user_id=user.id).delete()
+
+    next_due_date_m = datetime.now() + relativedelta(months=1)
+    next_due_date_y = datetime.now() + relativedelta(years=1)
+
+    subs = [Subscription(user_id=user.id, name="Netflix", amount=7.99, billing_cycle="monthly", next_due_date=next_due_date_m),
+            Subscription(user_id=user.id, name="Amazon Prime", amount=45.99, billing_cycle="yearly", next_due_date=next_due_date_y),
+            Subscription(user_id=user.id, name="Disney+", amount=12.99, billing_cycle="monthly", next_due_date=next_due_date_m),
+            Subscription(user_id=user.id, name="YouTube Premium", amount=15.99, billing_cycle="monthly", next_due_date=next_due_date_m)]
     
     try:
-        db.session.add(user)
+        db.session.add_all(subs)
         db.session.commit()
-        session["user_id"] = user.id
-        session["username"] = user.username
-        session["logged_in"] = True
-        return redirect(url_for("main.dashboard"))
     except Exception as e:
-        flash("Demo Version is not working")
-        print(f"ERROR: {e}")
+        db.session.rollback()
+        print(f"Error: {e}")
 
-        return redirect(url_for("main.index"))
+
+def update_dates():
+    now = datetime.now()
+    subs = Subscription.query.filter(Subscription.next_due_date < now).all()
+
+    for sub in subs:
+        if sub.billing_cycle == "monthly":
+            sub.next_due_date += relativedelta(months=1)
+        else:
+            sub.next_due_date += relativedelta(years=1)
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERROR: {e}")

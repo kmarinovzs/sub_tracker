@@ -7,7 +7,7 @@
 {% block main %}
     <h5>Welcome to the Homepage!</h5>
     {% if not session.get("logged_in") %}
-    <p style="margin-top: 150px;"> Log in or <a href="/demo" class="btn btn-primary" >TRY DEMO</a></p>
+    <p style="margin-top: 75px;"> Log In or <a href="/demo" class="btn btn-primary" >TRY DEMO</a></p>
     {% endif %}
-
+    <img src="{{url_for('static', filename='images/logo1.jpg')}}" alt="Logo" style="margin-top: 50px">
 {% endblock %}
