@@ -16,3 +16,14 @@ main {
 .btn-pushed {
     margin-bottom: 15px;
 }
+
+.price-input {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .price-input {
+        width: 120px;
+        flex: 0 0 auto;
+    }
+}
