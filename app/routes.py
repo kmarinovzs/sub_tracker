@@ -161,6 +161,7 @@ def edit(subscription_id):
         db.session.commit()
         return redirect(url_for("main.dashboard"))
     except Exception as e:
+        db.session.rollback()
         print(f"ERROR: {e}")
         flash("Edit was not possible, try again later")
         return redirect(url_for("main.dashboard"))
