@@ -5,17 +5,17 @@
 {% endblock %}
 
 {% block main %}
-<button id="addButton" class="btn btn-primary">Add Subscription</button>
+<button id="addButton" class="btn btn-primary w-100 w-md-auto">Add Subscription</button>
 
 <div id="formContainer" class="d-none w-100">
-    <form action="/add" method="post" class="d-flex gap-2 w-100">
+    <form action="/add" method="post" class="d-flex flex-column flex-md-row gap-2 w-100">
         <input type="text" name="subscription" placeholder="Subscription name" autofocus autocomplete="off"
             class="form-control flex-grow-1">
 
         <input type="number" name="amount" min="0" step="0.01" placeholder="Price" autocomplete="off"
-            class="form-control w-auto">
+            class="form-control w-100 w-md-auto">
 
-        <div class="d-flex flex-column justify-content-center">
+        <div class="d-flex flex-row flex-md-column align-items-start justify-content-center gap-2">
             <div class="form-check">
                 <input type="radio" name="billing" class="form-check-input" value="monthly">
                 <label for="Monthly">Monthly</label>
@@ -115,12 +115,12 @@
         </div>
     </div>
     <div id="editContainer{{subscription.id}}" class="d-none w-100">
-        <form action="/edit/{{subscription.id}}" method="post" class="d-flex gap-2 w-100">
+        <form action="/edit/{{subscription.id}}" method="post" class="d-flex flex-column flex-md-row gap-2 w-100">
             <input type="text" name="subscription" placeholder="Subscription name" autofocus autocomplete="off"
                 class="form-control flex-grow-1">
 
             <input type="number" name="amount" min="0" step="0.01" placeholder="Price" autocomplete="off"
-                class="form-control w-auto">
+                class="form-control w-100 w-md-auto">
 
             <div class="d-flex flex-column justify-content-center">
                 <div class="form-check">
