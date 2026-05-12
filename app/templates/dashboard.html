@@ -36,7 +36,7 @@
         <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
                 <h5 class="card-title">Average Monthly Spending</h5>
-                <p class="card-text">{{average_monthly | round(2)}} USD</p>
+                <p class="card-text">{{"{:,.2f}".format(total_monthly)}} USD</p>
             </div>
         </div>
     </div>
@@ -44,7 +44,7 @@
         <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
                 <h5 class="card-title">Total Yearly Spending</h5>
-                <p class="card-text">{{total_yearly | round(2)}} USD</p>
+                <p class="card-text">{{"{:,.2f}".format(total_yearly)}} USD</p>
             </div>
         </div>
     </div>
@@ -60,7 +60,7 @@
         <div class="card bg-info text-grey border-secondary h-100">
             <div class="card-body">
                 <h5 class="card-title">Due next month</h5>
-                <p class="card-text">{{ due_next_month | round(2) }} USD</p>
+                <p class="card-text">{{ "{:,.2f}".format(due_next_month)}} USD</p>
             </div>
         </div>
     </div>
